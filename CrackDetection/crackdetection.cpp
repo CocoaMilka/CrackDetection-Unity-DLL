@@ -19,24 +19,26 @@ void processCrack(Color32 **raw, int width, int height)
 	// Can now modify image via vanilla OpenCV
 	Mat frame(height, width, CV_8UC4, *raw);
 
-	// Image processing goes here...
+	// Process image here
+
+	resize(frame, frame, Size(height / 2, width / 2));
+
+	cvtColor(frame, frame, COLOR_BGR2GRAY);
 
 	int str_el_size = 12;
 	int area_obI = 110;
 
 	frame = crack_detection(frame, str_el_size, area_obI);
 
-	Mat edges;
-	Canny(frame, edges, 50, 200);
-	dilate(edges, edges, (5, 5));
-	normalize(edges, edges, 0, 1, NORM_MINMAX);
-	multiply(frame, edges, frame);
+	cout << "Image processed..." << endl;
+
+	// FOR DEBUGGING GRAHH
+	//string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
+	//imwrite("image.png", frame);
 }
 
 Mat crack_detection(Mat input_image, int str_el_size, int area_obI)
 {
-	Mat output_image;
-
 	// Structure elements (lines) these will be used to extract the cracks from the image
 	Mat SE1 = line_strel(str_el_size, 0);
 	Mat SE2 = line_strel(str_el_size, 45);
