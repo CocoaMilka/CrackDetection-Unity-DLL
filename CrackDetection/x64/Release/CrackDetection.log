@@ -1,0 +1,6 @@
+﻿     Creating library C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.lib and object C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.exp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 969 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  CrackDetection.vcxproj -> C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.dll
