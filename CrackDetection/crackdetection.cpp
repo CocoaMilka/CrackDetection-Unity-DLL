@@ -7,6 +7,10 @@
 #include <iostream>
 #include <vector>
 
+// Debug
+#include <ctime>
+#include <chrono>
+
 #include "crackdetection.h"
 
 using namespace cv;
@@ -21,7 +25,7 @@ void processCrack(Color32 **raw, int width, int height)
 
 	// Process image here
 
-	resize(frame, frame, Size(height / 2, width / 2));
+	//resize(frame, frame, Size(height / 2, width / 2));
 
 	cvtColor(frame, frame, COLOR_BGR2GRAY);
 
@@ -33,8 +37,11 @@ void processCrack(Color32 **raw, int width, int height)
 	cout << "Image processed..." << endl;
 
 	// FOR DEBUGGING GRAHH
-	//string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
-	//imwrite("image.png", frame);
+
+		string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
+		imwrite("image.png", frame);
+
+	cout << "Image printed..." << endl;
 }
 
 Mat crack_detection(Mat input_image, int str_el_size, int area_obI)
