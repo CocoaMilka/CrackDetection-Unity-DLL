@@ -7,15 +7,60 @@
 #include <iostream>
 #include <vector>
 
+#include "readerwriterqueue.h"
+#include "BS_thread_pool.hpp"
+
 // Debug
 #include <ctime>
 #include <chrono>
 
 #include "crackdetection.h"
 
+// Internal variables
+int str_el_size = 12;
+int area_obI = 110;
+
 using namespace cv;
 using namespace std;
 
+
+VideoCapture camera;
+cv::Mat _currentFrame;
+
+void processFrame()
+{
+	camera.open(0);
+
+	if (!camera.isOpened())
+	{
+		cerr << "Couldn't open camera" << endl;
+		exit(-1);
+	}
+}
+
+// For transferring Mat to Unity
+// ref: https://stackoverflow.com/a/49486419/21927290
+
+void GetRawImageBytes(unsigned char* data, int width, int height)
+{
+	camera.read(_currentFrame);
+	_currentFrame = crack_detection(_currentFrame, str_el_size, area_obI);
+
+	//Resize Mat to match the array passed to it from C#
+	cv::Mat resizedMat(height, width, _currentFrame.type());
+	cv::resize(_currentFrame, resizedMat, resizedMat.size(), cv::INTER_CUBIC);
+
+	//Convert from RGB to ARGB 
+	cv::Mat argb_img;
+	cv::cvtColor(resizedMat, argb_img, COLOR_RGB2BGRA);
+	std::vector<cv::Mat> bgra;
+	cv::split(argb_img, bgra);
+	std::swap(bgra[0], bgra[3]);
+	std::swap(bgra[1], bgra[2]);
+	std::memcpy(data, argb_img.data, argb_img.total() * argb_img.elemSize());
+}
+
+/*
 // Pass by ref to directly modify images
 void processCrack(Color32 **raw, int width, int height) 
 {
@@ -38,11 +83,12 @@ void processCrack(Color32 **raw, int width, int height)
 
 	// FOR DEBUGGING GRAHH
 
-		string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
-		imwrite("image.png", frame);
+	string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
+	imwrite("image.png", frame);
 
 	cout << "Image printed..." << endl;
 }
+*/
 
 Mat crack_detection(Mat input_image, int str_el_size, int area_obI)
 {

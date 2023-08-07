@@ -37,7 +37,10 @@ struct Color32
 // Functions to export
 extern "C"
 {
-	__declspec(dllexport) void processCrack(Color32 **raw, int width, int height);
+	//__declspec(dllexport) void processCrack(Color32 **raw, int width, int height);
+	//__declspec(dllexport) Color32 processCrack();
+	__declspec(dllexport) void GetRawImageBytes(unsigned char* data, int width, int height);
+	__declspec(dllexport) void processFrame();
 }
 
 

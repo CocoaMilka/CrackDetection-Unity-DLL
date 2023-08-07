@@ -1,7 +1,8 @@
-﻿     Creating library C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.lib and object C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.exp
+﻿  crackdetection.cpp
+     Creating library C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.lib and object C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.exp
   Generating code
-  0 of 978 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  370 of 995 functions (37.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    98 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   CrackDetection.vcxproj -> C:\Users\jrgbk4\Documents\CrackDetection\x64\Release\CrackDetection.dll
