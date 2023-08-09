@@ -27,14 +27,22 @@ using namespace std;
 VideoCapture camera;
 cv::Mat _currentFrame;
 
-void processFrame()
+void toggleCamera()
 {
-	camera.open(0);
-
+	// Camera toggle
 	if (!camera.isOpened())
 	{
-		cerr << "Couldn't open camera" << endl;
-		exit(-1);
+		camera.open(0);
+
+		if (!camera.isOpened())
+		{
+			cerr << "Couldn't open camera..." << endl;
+			exit(-1);
+		}
+	}
+	else
+	{
+		camera.release();
 	}
 }
 
