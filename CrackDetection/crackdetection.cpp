@@ -52,7 +52,28 @@ void toggleCamera()
 void GetRawImageBytes(unsigned char* data, int width, int height)
 {
 	camera.read(_currentFrame);
-	_currentFrame = crack_detection(_currentFrame, str_el_size, area_obI);
+	//_currentFrame = crack_detection(_currentFrame, str_el_size, area_obI);
+
+		cv::resize(_currentFrame, _currentFrame, _currentFrame.size(), cv::INTER_CUBIC);
+		//cv::resize(_currentFrame, _currentFrame, cv::Size(), 0.5, 0.5);
+
+		// Convert to grayscale
+		cv::cvtColor(_currentFrame, _currentFrame, cv::COLOR_BGR2GRAY);
+
+		// Apply Canny edge detection
+		cv::Canny(_currentFrame, _currentFrame, 100, 200);
+
+		// Invert the colors
+		_currentFrame = Scalar(255) - _currentFrame;
+
+		cv::Mat mask;
+		cv::threshold(_currentFrame, mask, 254, 255, cv::THRESH_BINARY_INV);
+
+		// Create a transparent image with the same size as the original
+		cv::Mat transparent(_currentFrame.size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+
+		// Copy the original image to the transparent image where the mask is non-zero
+		transparent.setTo(cv::Scalar(0, 0, 0, 255), mask);
 
 	//Resize Mat to match the array passed to it from C#
 	cv::Mat resizedMat(height, width, _currentFrame.type());
@@ -67,36 +88,6 @@ void GetRawImageBytes(unsigned char* data, int width, int height)
 	std::swap(bgra[1], bgra[2]);
 	std::memcpy(data, argb_img.data, argb_img.total() * argb_img.elemSize());
 }
-
-/*
-// Pass by ref to directly modify images
-void processCrack(Color32 **raw, int width, int height) 
-{
-	// Create Mat from passed in struct from Unity
-	// Can now modify image via vanilla OpenCV
-	Mat frame(height, width, CV_8UC4, *raw);
-
-	// Process image here
-
-	//resize(frame, frame, Size(height / 2, width / 2));
-
-	cvtColor(frame, frame, COLOR_BGR2GRAY);
-
-	int str_el_size = 12;
-	int area_obI = 110;
-
-	frame = crack_detection(frame, str_el_size, area_obI);
-
-	cout << "Image processed..." << endl;
-
-	// FOR DEBUGGING GRAHH
-
-	string path = "C:/Users/jrgbk4/Pictures/OPENCV_TESTING/";
-	imwrite("image.png", frame);
-
-	cout << "Image printed..." << endl;
-}
-*/
 
 Mat crack_detection(Mat input_image, int str_el_size, int area_obI)
 {
@@ -160,38 +151,65 @@ Mat crack_detection(Mat input_image, int str_el_size, int area_obI)
 
 Mat combineImage(Mat T, Mat T1, Mat T2, Mat T3, Mat T4, int rLeft, int rRight, int cLeft, int cRight)
 {
+	int r1 = (rLeft + rRight) / 3;
+	int r2 = r1 * 2;
+	int c1 = (cLeft + cRight) / 3;
+	int c2 = c1 * 2;
 
-	if (rLeft < rRight || cLeft < cRight)
-	{
-		int rMid = (rLeft + rRight) / 2;
-		int cMid = (cLeft + cRight) / 2;
-
-		// Each recursively solves a quadrant of the image, divide and conquer technique :3 (Still need to implement recursion)
-		auto worker1 = pool.submit([&]()
+	auto worker1 = pool.submit([&]()
 		{
-			combine(T, T1, T2, T3, T4, rLeft, rMid, cLeft, cMid);
+			combine(T, T1, T2, T3, T4, rLeft, r1, cLeft, c1);
 		});
 
-		auto worker2 = pool.submit([&]()
+	auto worker2 = pool.submit([&]()
 		{
-			combine(T, T1, T2, T3, T4, rMid, rRight, cLeft, cMid);
+			combine(T, T1, T2, T3, T4, r1, r2, cLeft, c1);
 		});
 
-		auto worker3 = pool.submit([&]()
+	auto worker3 = pool.submit([&]()
 		{
-			combine(T, T1, T2, T3, T4, rLeft, rMid, cMid, cRight);
+			combine(T, T1, T2, T3, T4, r2, rRight, cLeft, c1);
 		});
 
-		auto worker4 = pool.submit([&]()
+	auto worker4 = pool.submit([&]()
 		{
-			combine(T, T1, T2, T3, T4, rMid, rRight, cMid, cRight);
+			combine(T, T1, T2, T3, T4, rLeft, r1, c1, c2);
 		});
 
-		worker1.wait();
-		worker2.wait();
-		worker3.wait();
-		worker4.wait();
-	}
+	auto worker5 = pool.submit([&]()
+		{
+			combine(T, T1, T2, T3, T4, r1, r2, c1, c2);
+		});
+
+	auto worker6 = pool.submit([&]()
+		{
+			combine(T, T1, T2, T3, T4, r2, rRight, c1, c2);
+		});
+
+	auto worker7 = pool.submit([&]()
+		{
+			combine(T, T1, T2, T3, T4, rLeft, r1, c2, cRight);
+		});
+
+	auto worker8 = pool.submit([&]()
+		{
+			combine(T, T1, T2, T3, T4, r1, r2, c2, cRight);
+		});
+
+	auto worker9 = pool.submit([&]()
+		{
+			combine(T, T1, T2, T3, T4, r2, rRight, c2, cRight);
+		});
+
+	worker1.wait();
+	worker2.wait();
+	worker3.wait();
+	worker4.wait();
+	worker5.wait();
+	worker6.wait();
+	worker7.wait();
+	worker8.wait();
+	worker9.wait();
 
 	return T;
 }
