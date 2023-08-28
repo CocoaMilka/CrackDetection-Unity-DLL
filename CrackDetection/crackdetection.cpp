@@ -54,26 +54,42 @@ void GetRawImageBytes(unsigned char* data, int width, int height)
 	camera.read(_currentFrame);
 	//_currentFrame = crack_detection(_currentFrame, str_el_size, area_obI);
 
-		cv::resize(_currentFrame, _currentFrame, _currentFrame.size(), cv::INTER_CUBIC);
-		//cv::resize(_currentFrame, _currentFrame, cv::Size(), 0.5, 0.5);
+		// Resize Image
+		Size newSize(_currentFrame.cols / 2, _currentFrame.rows / 2);
+		resize(_currentFrame, _currentFrame, newSize);
 
 		// Convert to grayscale
-		cv::cvtColor(_currentFrame, _currentFrame, cv::COLOR_BGR2GRAY);
+		cvtColor(_currentFrame, _currentFrame, COLOR_BGR2GRAY);
 
-		// Apply Canny edge detection
-		cv::Canny(_currentFrame, _currentFrame, 100, 200);
+		// Canny edge detection
+		Canny(_currentFrame, _currentFrame, 50, 150);
 
-		// Invert the colors
+		// Find contours
+		vector<vector<cv::Point>> contours;
+		findContours(_currentFrame, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+		// Find largest contour
+		double maxArea = 0;
+		int maxContourIndex = -1;
+		for (int i = 0; i < contours.size(); i++)
+		{
+			double area = contourArea(contours[i]);
+			if (area > maxArea)
+			{
+				maxArea = area;
+				maxContourIndex = i;
+			}
+		}
+
+		// Draw bounding box around the largest "edge"
+		if (maxContourIndex != -1)
+		{
+			cv::Rect boundingRect = cv::boundingRect(contours[maxContourIndex]);
+			cv::rectangle(_currentFrame, boundingRect, cv::Scalar(255), 2);
+		}
+
+		// Invert
 		_currentFrame = Scalar(255) - _currentFrame;
-
-		cv::Mat mask;
-		cv::threshold(_currentFrame, mask, 254, 255, cv::THRESH_BINARY_INV);
-
-		// Create a transparent image with the same size as the original
-		cv::Mat transparent(_currentFrame.size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
-
-		// Copy the original image to the transparent image where the mask is non-zero
-		transparent.setTo(cv::Scalar(0, 0, 0, 255), mask);
 
 	//Resize Mat to match the array passed to it from C#
 	cv::Mat resizedMat(height, width, _currentFrame.type());
